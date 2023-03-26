@@ -1,0 +1,23 @@
+{% extends "base.jinja" %}
+
+{% block "content" %}
+<section class="section">
+    <div class="box">
+        <h1>Login</h1>
+        <form action="/login/" method="post" class="form">
+            {% csrf_token %}
+            <div class="field">
+                <div class="label">Username</div>
+                <div class="control"><input class="input" type="text" name="username" id="username"></div>
+            </div>
+            <div class="field">
+                <div class="label">Password</div>
+                <div class="control"><input class="input" type="password" name="password" id="password"></div>
+            </div>
+
+            <input type="submit" class="button is-primary" />
+        </form>
+    </div>
+    <p>Does not have an account? Click <a href="/register/">here</a> to create one.</p>
+</section>
+{% endblock %}

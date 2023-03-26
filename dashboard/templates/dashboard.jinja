@@ -1,0 +1,166 @@
+{% extends "base.jinja" %}
+
+{% block "content" %}
+<section class="section">
+    <h1>Welcome back, <strong>{{user.username}}</strong>!</h1>
+    <p>This is your dashboard. Come back here to see the statistics of your links and manage them.</p>
+
+    <div class="box">
+        <h2>Create Short URL</h2>
+        <form action="/upsert_link/" method="post" class="form">
+            {% csrf_token %}
+            <div class="field">
+                <div class="label">URL</div>
+                <div class="control"><input class="input" type="text" name="url" id="url"
+                        placeholder="https://example.com/a-very/long?link=with&many=characters"></div>
+            </div>
+
+            <input type="submit" class="button is-primary" />
+        </form>
+    </div>
+
+    <h2>Your Links</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>URL</th>
+                <th>Shortened</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Visits</th>
+                <th>Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for link in links %}
+            <tr>
+                <th>{{link.id}}</th>
+                <td><a href="{{link.url}}">{{link.url}}</a></td>
+                <td>{{link.unique_identifier}}</td>
+                <td>{{link.create_date}}</td>
+                <td>{{link.last_update}}</td>
+                <td>{{link.visits}}</td>
+                <td>
+                    <p>
+                        {% if link.enabled %}
+                    <form action="/upsert_link/" method="get">
+                        {% csrf_token %}
+                        <input type="text" name="uniqueIdentifier" id="uniqueIdentifier"
+                            value="{{link.unique_identifier}}" hidden>
+                        <input type="text" name="toggleState" id="toggleState" value="1" hidden>
+                        <button class="button is-link is-danger is-light">
+                            <span class="icon"><i class="fa-solid fa-xmark"></i></span>
+                            <span>Disable</span></button>
+                    </form>
+                    {% else %}
+                    <form action="/upsert_link/" method="get">
+                        {% csrf_token %}
+                        <input type="text" name="uniqueIdentifier" id="uniqueIdentifier"
+                            value="{{link.unique_identifier}}" hidden>
+                        <input type="text" name="toggleState" id="toggleState" value="1" hidden>
+                        <button class="button is-link is-success is-light">
+                            <span class="icon"><i class="fa-solid fa-check"></i></span>
+                            <span>Enable</span></button>
+                    </form>
+                    {% endif %}
+                    </p>
+                    <p>
+                    <form action="/upsert_link/" method="get">
+                        {% csrf_token %}
+                        <input type="text" name="uniqueIdentifier" id="uniqueIdentifier"
+                            value="{{link.unique_identifier}}" hidden>
+                        <input type="text" name="delete" id="delete" value="1" hidden>
+                        <button class="button is-link is-danger is-light">
+                            <span class="icon"><i class="fa-solid fa-trash"></i></span>
+                            <span>Delete</span></button>
+                    </form>
+                    </p>
+                    <p>
+                        <button class="js-modal-trigger button is-info is-light" data-target="modal-js-example"
+                            data-identifier="{{link.unique_identifier}}" data-url="{{link.url}}">
+                            <span class="icon"><i class="fa-solid fa-pencil"></i></span>
+                            <span>Edit URL</span></button>
+                    </p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</section>
+
+<div class="modal" id="modal-js-example">
+    <div class="modal-background"></div>
+    <div class="modal-content">
+        <div class="box">
+            <form action="/upsert_link/" method="get">
+                {% csrf_token %}
+                <input type="text" name="uniqueIdentifier" id="uniqueIdentifierModal" value="null" hidden>
+                <div class="field">
+                    <div class="label">New URL</div>
+                    <div class="control">
+                        <input class="input" type="text" name="newURL" id="newURL"
+                            placeholder="https://example.com/a-very/long?link=with&many=characters" />
+                    </div>
+                </div>
+                <button class="button is-light is-success">
+                    <span class="icon"><i class="fa-solid fa-check"></i></span>
+                    <span>Save</span></button>
+        </div>
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Functions to open and close a modal
+        function openModal($el) {
+            $el.classList.add('is-active');
+        }
+
+        function closeModal($el) {
+            $el.classList.remove('is-active');
+        }
+
+        function closeAllModals() {
+            (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+                closeModal($modal);
+            });
+        }
+
+        // Add a click event on buttons to open a specific modal
+        (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+            const modal = $trigger.dataset.target;
+            const identifier = $trigger.dataset.identifier;
+            const url = $trigger.dataset.url;
+            const $target = document.getElementById(modal);
+
+            $trigger.addEventListener('click', () => {
+                document.querySelector("#uniqueIdentifierModal").value = identifier;
+                document.querySelector("#newURL").value = url;
+                openModal($target);
+            });
+        });
+
+        // Add a click event on various child elements to close the parent modal
+        (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+            const $target = $close.closest('.modal');
+
+            $close.addEventListener('click', () => {
+                closeModal($target);
+            });
+        });
+
+        // Add a keyboard event to close all modals
+        document.addEventListener('keydown', (event) => {
+            const e = event || window.event;
+
+            if (e.keyCode === 27) { // Escape key
+                closeAllModals();
+            }
+        });
+    });
+</script>
+
+{% endblock %}
